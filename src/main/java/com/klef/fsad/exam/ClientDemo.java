@@ -4,72 +4,66 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-
+import java.util.Date;
+import java.util.Scanner;
 
 public class ClientDemo {
     public static void main(String[] args) {
-        // Initialize SessionFactory
-        Configuration cfg = new Configuration();
-        cfg.configure("hibernate.cfg.xml");
+        Configuration configuration = new Configuration();
+        configuration.configure("hibernate.cfg.xml");
+        SessionFactory sessionFactory = configuration.buildSessionFactory();
 
-        try (SessionFactory sessionFactory = cfg.buildSessionFactory()) {
-            // Operation I: Insert a new record
-            int insertedId = insertCourse(sessionFactory);
-            System.out.println("\n-------------------------------------------");
-            System.out.println("Operation I: Course Inserted with ID: " + insertedId);
-            System.out.println("-------------------------------------------\n");
+        // 1. Insert a new record
+        insertCourse(sessionFactory);
 
-            // Operation II: View the record based on ID
-            viewCourseById(sessionFactory, insertedId);
+        // 2. View record based on ID
+        viewCourseById(sessionFactory);
 
-        } catch (Exception e) {
-            System.err.println("Execution Error: " + e.getMessage());
-        }
+        sessionFactory.close();
     }
 
-    private static int insertCourse(SessionFactory sessionFactory) {
-        int courseId = 0;
+    private static void insertCourse(SessionFactory sessionFactory) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
 
-        try (Session session = sessionFactory.openSession()) {
-            Transaction tx = session.beginTransaction();
-            try {
-                Course course = new Course();
-                course.setName("Enterprise Programming");
-                course.setDescription("Advanced Java and Hibernate Development");
-                course.setDate("2024-05-02");
-                course.setStatus("Completed");
+        Course course = new Course();
+        course.setName("Full Stack Application Development");
+        course.setDescription("Advanced Java and Web Technologies");
+        course.setDate(new Date());
+        course.setStatus("Active");
 
-                session.persist(course);
-                tx.commit();
-                courseId = course.getId();
-            } catch (Exception e) {
-                if (tx != null) tx.rollback();
-                throw e;
-            }
-        } catch (Exception e) {
-            System.err.println("Insert Error: " + e.getMessage());
-        }
-        return courseId;
+        session.persist(course);
+        transaction.commit();
+        System.out.println("Course Inserted Successfully with ID: " + course.getId());
+        session.close();
+        
+        // Storing the ID for demonstration of the second part
+        latestInsertedId = course.getId();
     }
 
-    private static void viewCourseById(SessionFactory sessionFactory, int id) {
-        try (Session session = sessionFactory.openSession()) {
-            Course course = session.get(Course.class, id);
+    private static int latestInsertedId = -1;
 
-            System.out.println("-------------------------------------------");
-            if (course != null) {
-                System.out.println("Operation II: Course Details Found:");
-                System.out.println("ID: " + course.getId());
-                System.out.println("Name: " + course.getName());
-                System.out.println("Description: " + course.getDescription());
-                System.out.println("Date: " + course.getDate());
-                System.out.println("Status: " + course.getStatus());
-            } else {
-                System.out.println("Operation II: Course not found with ID: " + id);
-            }
-            System.out.println("-------------------------------------------\n");
-        } catch (Exception e) {
-            System.err.println("View Error: " + e.getMessage());
+    private static void viewCourseById(SessionFactory sessionFactory) {
+        if (latestInsertedId == -1) {
+            System.out.println("No course inserted yet.");
+            return;
         }
+        
+        System.out.println("Fetching Course with ID: " + latestInsertedId);
+        
+        Session session = sessionFactory.openSession();
+        Course course = session.get(Course.class, latestInsertedId);
+
+        if (course != null) {
+            System.out.println("Course Details:");
+            System.out.println("ID: " + course.getId());
+            System.out.println("Name: " + course.getName());
+            System.out.println("Description: " + course.getDescription());
+            System.out.println("Date: " + course.getDate());
+            System.out.println("Status: " + course.getStatus());
+        } else {
+            System.out.println("Course with ID " + latestInsertedId + " not found.");
+        }
+        session.close();
     }
 }

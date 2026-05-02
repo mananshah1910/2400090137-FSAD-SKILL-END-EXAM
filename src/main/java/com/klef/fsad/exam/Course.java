@@ -1,11 +1,7 @@
 package com.klef.fsad.exam;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "course_table")
@@ -20,8 +16,9 @@ public class Course {
     @Column(name = "course_description", length = 255)
     private String description;
 
-    @Column(name = "course_date", length = 50)
-    private String date;
+    @Column(name = "course_date")
+    @Temporal(TemporalType.DATE)
+    private Date date;
 
     @Column(name = "course_status", length = 50)
     private String status;
@@ -51,11 +48,11 @@ public class Course {
         this.description = description;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
@@ -69,12 +66,7 @@ public class Course {
 
     @Override
     public String toString() {
-        return "Course{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", date='" + date + '\'' +
-                ", status='" + status + '\'' +
-                '}';
+        return "Course [id=" + id + ", name=" + name + ", description=" + description + ", date=" + date + ", status="
+                + status + "]";
     }
 }
